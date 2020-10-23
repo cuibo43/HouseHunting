@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<head>
+	<meta charset="utf-8">
+	<meta http-equiv="X-UA-Compatible" content="IE=edge">
+	<meta name="viewport" content="width=device-width, initial-scale=1">
+	<meta name="keywords" content="footer, basic, centered, links" />
+	<link rel="stylesheet" href="css/demo.css">
+	<link rel="stylesheet" href="css/footer-basic-centered.css">
+    <style>
+    #map {
+        height: 500px;
+        width: 80%;  
+        top: 100px; 
+        left: 150px;
+       }
+      
+    </style>
+    <script src="lib/d3.v5.min.js"></script>
+</head>
+<header><h1 align="center">Finding house</h1></header>
+<body>
+<div id="selector" style="position: absolute;height:200px;top:100px;left:270px">
+    <label for="selectPrice">Select price</label>
+    <select id="selectPrice">
+        <option value="0" selected="selected">0~200,000</option>
+        <option value="1">200,000~400,000</option>
+        <option value="2">400,000~600,000</option>
+        <option value="3">600,000~1,000,000</option>
+        <option value="4">>1,000,000</option>
+    </select>
+    <label for="bedroomNumber">Bedroom</label>
+    <select id="bedroomNumber">
+        <option value="0" selected="selected">0</option>
+        <option value="1">1</option>
+        <option value="2">2</option>
+        <option value="3">3</option>
+        <option value="4">4</option>
+        <option value="5">>5</option>
+    </select>
+        <label for="prefer">Importance</label>
+        <select id="prefer">
+        <option value="0" selected="selected">safety>cheap price>more restaurants</option>
+        <option value="1">safety>more restaurants>cheap price</option>
+        <option value="2">cheap price>safety>more restaurants</option>
+        <option value="3">cheap price>more restaurants>safety</option>
+        <option value="4">more restaurants>cheap price>safety</option>
+        <option value="5">more restaurants>safety>cheap price</option>
+    </select>
+    <button id="button" type="button">Find house</button>
+</div>
+<div id="choice" ></div>
+<div style="position: absolute;width:500px;height:200px;top:150px;left:450px">
+<table id="t" top=10px align = "center">
+  <thead>
+    <tr><td>  Rank</td><td>  Address</td><td>  Price</td><td>  Score</td><td>  Zipcode</td></tr>
+  </thead>
+  <tbody>
+    <tr><td>  1</td><td>  </td><td>  </td><td>  </td><td>  </td></tr>
+    <tr><td>  2</td><td>  </td><td>  </td><td>  </td><td>  </td></tr>
+	<tr><td>  3</td><td>  </td><td>  </td><td>  </td><td>  </td></tr>
+	<tr><td>  4</td><td>  </td><td>  </td><td>  </td><td>  </td></tr>
+	<tr><td>  5</td><td>  </td><td>  </td><td>  </td><td>  </td></tr>
+	<tr><td>  6</td><td>  </td><td>  </td><td>  </td><td>  </td></tr>
+	<tr><td>  7</td><td>  </td><td>  </td><td>  </td><td>  </td></tr>
+	<tr><td>  8</td><td>  </td><td>  </td><td>  </td><td>  </td></tr>
+	<tr><td>  9</td><td>  </td><td>  </td><td>  </td><td>  </td></tr>
+	<tr><td>  10</td><td>  </td><td>  </td><td>  </td><td>  </td></tr>
+	
+  </tbody>
+</table>
+
+</div>
+<div id="map"></div>
+
+<script>
+	
+	
+    function draw(selectMap, selectPrice, bedroomNumber, prefer) {
+        if(prefer=="0"){var ratio=[0.27,0.06,0.67];}
+        if(prefer=="1"){var ratio=[0.1,0.26,0.64];}
+        if(prefer=="2"){var ratio=[0.65,0.07,0.28];}
+        if(prefer=="3"){var ratio=[0.66,0.29,0.05];}
+        if(prefer=="4"){var ratio=[0.28,0.65,0.07];}
+        if(prefer=="5"){var ratio=[0.07,0.75,0.18];}
+        
+        var data = [];
+        d3.csv('ATLdata.csv').then( function(dataset) {
+            dataset.forEach(function (d) {
+                    var obj = {};
+                        obj.address = d.address;
+                        obj.zipcode = +d.zipcode;
+                        obj.lng = +d.lng;
+                        obj.lat = +d.lat;
+                        obj.beds = +d.beds;
+                        obj.price = +d.price;
+                        obj.food = +d.Restau;
+                        obj.crime = +d.crime;
+                        obj.scaleprice = +d.scaleprice;
+                        obj.scalefood = +d.scalefood;
+                        obj.scalecrime = +d.scalecrime;
+                        obj.score= +(d.scalefood*ratio[1]-d.scaleprice*ratio[0]-d.scalecrime*ratio[2])
+                        data.push(obj) 
+            });
+           if(selectPrice=="0"){data = data.filter(function (item) {return item.price>0&&item.price<=200000;});}
+           if(selectPrice=="1"){data = data.filter(function (item) {return item.price>200000&&item.price<=400000;});}
+           if(selectPrice=="2"){data = data.filter(function (item) {return item.price>400000&&item.price<=600000;});}
+           if(selectPrice=="3"){data = data.filter(function (item) {return item.price>600000&&item.price<=1000000;});}
+           if(selectPrice=="4"){data = data.filter(function (item) {return item.price>1000000;});}
+         
+           
+           if(bedroomNumber=="0"){data = data.filter(function (item) {return item.beds==0;});}
+           if(bedroomNumber=="1"){data = data.filter(function (item) {return item.beds==1;});}
+           if(bedroomNumber=="2"){data = data.filter(function (item) {return item.beds==2;});}
+           if(bedroomNumber=="3"){data = data.filter(function (item) {return item.beds==3;});}
+           if(bedroomNumber=="4"){data = data.filter(function (item) {return item.beds==4;});}
+           if(bedroomNumber=="5"){data = data.filter(function (item) {return item.beds==5;});}
+            
+            function compare(a,b) {
+             if (a.score > b.score)
+             return -1;
+             if (a.score < b.score)
+             return 1;
+             return 0;
+             }
+            data.sort(compare);
+            topten=data.slice(0,10);
+            function initMap() {
+      var map = new google.maps.Map(
+      document.getElementById('map'), {zoom: 10, center:{lat:33.745112, lng:-84.390341}});
+ //Create and open InfoWindow.
+        var infoWindow = new google.maps.InfoWindow();
+        for (var i = 0; i < topten.length; i++) {
+            var mapdata = topten[i];
+            var myLatlng = new google.maps.LatLng(mapdata.lat, mapdata.lng);
+            var marker = new google.maps.Marker({
+                position: myLatlng,
+                map: map,
+                title: mapdata.address
+            });
+            //Attach click event to the marker.
+            (function (marker, data) {
+                google.maps.event.addListener(marker, "click", function (e) {
+                    //Wrap the content inside an HTML DIV in order to set height and width of InfoWindow.
+                    infoWindow.setContent(
+                    
+                     "<div style = 'width:200px;min-height:40px'>" +"Address:"+ data.address + "</div>"+
+                    "<div style = 'width:200px;min-height:40px'>" +"House Price:" +data.price + "</div>"+
+                    "<div style = 'width:200px;min-height:40px'>" +"Restaurant Number:"+ data.food + "</div>"+
+                    "<div style = 'width:200px;min-height:40px'>" +"Crime Number:"+ data.crime + "</div>"
+                    
+                    
+                    );
+                    infoWindow.open(map, marker);
+                });
+            })(marker, mapdata);
+        }
+		
+
+}
+initMap();
+
+      function inittable(topten){
+		  var tb = document.getElementById('t');
+		  for (j=0;j<topten.length;j++){
+			  tb.rows[j+1].cells[1].innerHTML = topten[j]['address'];
+			  tb.rows[j+1].cells[2].innerHTML = topten[j]['price'];
+			  var bb = topten[j]['score']
+			  bb = Math.round(bb*100)
+			  
+	
+			  tb.rows[j+1].cells[3].innerHTML = bb+"%";
+			  tb.rows[j+1].cells[4].innerHTML = topten[j]['zipcode'];
+		  }
+		  /*var td = tb.rows[0].cells[0];
+		  td.innerHTML = '222';*/
+	  }
+	  console.log(topten);
+inittable(topten);
+
+});}
+    d3.select('#button').on("click", function () {
+        document.getElementById("choice").innerHTML = '';
+        var price = document.getElementById("selectPrice");
+        var bed = document.getElementById("bedroomNumber");
+        var prefer = document.getElementById("prefer");
+        var selectPrice = price.options[price.selectedIndex].value;
+        var selectBed = bed.options[bed.selectedIndex].value;
+        var selectPrefer = prefer.options[prefer.selectedIndex].value;
+        draw("#choice", selectPrice, selectBed, selectPrefer);
+    });
+</script>
+
+<script async defer
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyCJJEv3UciqA7urWzLxIWKDgQ1nIVDZbMw&callback=initMap">
+</script>
+		<footer class="footer-basic-centered">
+			<p class="footer-company-name">Team BinM &copy; 2019</p>
+
+		</footer>
+</body>
